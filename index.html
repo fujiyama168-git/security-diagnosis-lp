@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="保守会社に任せているから大丈夫。その根拠を、社内で説明できる状態へ。中小企業のための情報漏洩予防設計。外から見える入口の確認、優先順位の判断、是正後の再確認までを一つの運用にします。">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <title>情報漏洩予防設計 | うちは大丈夫、と言える根拠をつくる</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper:#f3f1ec; --night:#0a1622; --ink:#0f1d2b; --snow:#e9f1f0;
+      --teal:#0f7f74; --mint:#6fd6c2; --alert:#e2603f;
+      --dp:0%;
+      --bg:color-mix(in oklab, var(--paper), var(--night) var(--dp));
+      --fg:color-mix(in oklab, var(--ink), var(--snow) var(--dp));
+      --fg-soft:color-mix(in oklab, color-mix(in oklab, var(--ink) 72%, var(--paper)), color-mix(in oklab, var(--snow) 70%, var(--night)) var(--dp));
+      --accent:color-mix(in oklab, var(--teal), var(--mint) var(--dp));
+      --line:color-mix(in oklab, rgba(15,29,43,.14), rgba(233,241,240,.16) var(--dp));
+      --card:color-mix(in oklab, rgba(255,255,255,.72), rgba(20,38,54,.72) var(--dp));
+      --gutter:clamp(20px, 5vw, 72px);
+    }
+    * { box-sizing:border-box; }
+    html { -webkit-text-size-adjust:100%; }
+    html.lenis, html.lenis body { height:auto; }
+    .lenis.lenis-smooth { scroll-behavior:auto !important; }
+    body { margin:0; background:var(--bg); color:var(--fg); font-family:'Noto Sans JP','Yu Gothic',sans-serif; font-size:20px; line-height:1.9; letter-spacing:.03em; overflow-x:clip; font-feature-settings:'palt' 1; }
+    a { color:inherit; text-decoration:none; }
+    img { display:block; max-width:100%; }
+    .mono { font-family:'DM Mono',monospace; font-size:13px; letter-spacing:.14em; text-transform:uppercase; line-height:1.5; }
+    .eyebrow { display:inline-flex; align-items:center; gap:14px; color:var(--accent); }
+    .eyebrow:before { content:''; width:36px; height:1px; background:currentColor; }
+    h1,h2,h3 { margin:0; font-weight:900; letter-spacing:.01em; line-height:1.28; }
+    h2 { font-size:clamp(32px, 4.6vw, 68px); }
+    p { margin:0; }
+    .soft { color:var(--fg-soft); }
+
+    /* split text */
+    .line { display:block; overflow:hidden; padding-bottom:.08em; margin-bottom:-.08em; }
+    .ch { display:inline-block; will-change:transform; }
+    .ch-i { display:inline-block; will-change:transform,opacity; }
+
+    /* fixed layers */
+    #field { position:fixed; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; }
+    main { position:relative; z-index:2; }
+    .progress { position:fixed; top:0; left:0; right:0; height:3px; z-index:60; transform-origin:0 50%; transform:scaleX(0); background:linear-gradient(90deg,var(--teal),var(--mint),var(--alert)); }
+    .site-header { position:fixed; z-index:50; top:0; left:0; right:0; padding:18px var(--gutter); display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .site-header:before { content:''; position:absolute; inset:0; background:color-mix(in oklab, var(--bg) 78%, transparent); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-bottom:1px solid var(--line); opacity:var(--hdr,0); transition:opacity .5s; z-index:-1; }
+    .brand { display:flex; align-items:center; gap:12px; font-weight:700; font-size:16px; letter-spacing:.06em; }
+    .brand svg { width:28px; height:28px; }
+    .chapter { display:flex; align-items:center; gap:14px; color:var(--fg-soft); }
+    .chapter b { color:var(--accent); font-weight:500; }
+    .chapter .ch-label { display:inline-block; min-width:9em; }
+    .header-cta { font-size:15px; font-weight:700; padding:11px 20px; border-radius:999px; background:var(--fg); color:var(--bg); transition:transform .4s cubic-bezier(.2,.8,.2,1); }
+    .header-cta:hover { transform:scale(1.06); }
+
+    .btn { position:relative; display:inline-flex; align-items:center; gap:14px; font-size:18px; font-weight:700; padding:20px 34px; border-radius:999px; overflow:hidden; isolation:isolate; transition:color .45s ease; will-change:transform; }
+    .btn .fill { position:absolute; inset:0; z-index:-1; border-radius:inherit; transform:scale(0); transform-origin:var(--mx,50%) var(--my,50%); transition:transform .6s cubic-bezier(.2,.8,.2,1); }
+    .btn:hover .fill { transform:scale(2.4); }
+    .btn-main { background:var(--fg); color:var(--bg); }
+    .btn-main .fill { background:var(--alert); }
+    .btn-main:hover { color:#fff; }
+    .btn-ghost { border:1px solid var(--line); color:var(--fg); }
+    .btn-ghost .fill { background:var(--accent); }
+    .btn-ghost:hover { color:#fff; }
+    .btn .arrow { width:22px; height:22px; transition:transform .5s cubic-bezier(.2,.8,.2,1); }
+    .btn:hover .arrow { transform:translateX(5px); }
+
+    .pin { position:relative; }
+    .stage { position:sticky; top:0; height:100vh; height:100svh; overflow:hidden; }
+
+    /* HERO */
+    .hero { height:300vh; }
+    .hero .stage { display:flex; flex-direction:column; align-items:center; justify-content:flex-start; text-align:center; padding:clamp(92px,12vh,132px) var(--gutter) 0; }
+    .hero-eyebrow { margin-bottom:20px; }
+    .hero-title { font-size:clamp(34px, 5.4vw, 86px); line-height:1.16; }
+    .hero-title .q { color:var(--accent); }
+    .hero-sub { margin-top:20px; font-size:clamp(17px,1.5vw,22px); max-width:46em; }
+    .hero-actions { margin-top:28px; display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+    .hero-window { position:absolute; inset:0; z-index:3; clip-path:inset(64% 33% 5% 33% round 28px); will-change:clip-path; }
+    .hero-window img { width:100%; height:100%; object-fit:cover; object-position:70% 40%; transform:scale(1.4); will-change:transform; }
+    .hero-window .shade { position:absolute; inset:0; background:linear-gradient(90deg, rgba(10,22,34,.95) 0%, rgba(10,22,34,.7) 45%, rgba(10,22,34,.15) 100%); opacity:0; }
+    .hero-caption { position:absolute; z-index:4; left:var(--gutter); bottom:clamp(60px,14vh,140px); max-width:min(1000px, 88vw); text-align:left; color:#eef5f3; font-size:clamp(26px,3vw,48px); font-weight:900; line-height:1.4; pointer-events:none; }
+    .hero-caption .mono { display:block; color:var(--mint); margin-bottom:18px; font-weight:500; }
+    .hero-caption .mono .ch-i { letter-spacing:.14em; }
+    .scroll-cue { position:absolute; z-index:5; right:var(--gutter); bottom:28px; display:flex; flex-direction:column; align-items:center; gap:10px; color:var(--fg-soft); }
+    .scroll-cue i { width:1px; height:46px; background:linear-gradient(var(--accent),transparent); animation:cue 2.2s cubic-bezier(.6,0,.2,1) infinite; transform-origin:top; }
+    @keyframes cue { 0%{transform:scaleY(0)} 50%{transform:scaleY(1)} 100%{transform:scaleY(1);opacity:0} }
+
+    /* QUESTIONS */
+    .questions { height:340vh; }
+    .questions .stage { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:0 var(--gutter); }
+    .questions h2 { margin:18px 0 clamp(28px,5vh,56px); }
+    .qlist { list-style:none; margin:0; padding:0; display:grid; gap:clamp(14px,2.6vh,26px); max-width:900px; }
+    .qlist li { font-size:clamp(20px,2.1vw,30px); font-weight:700; line-height:1.55; opacity:.14; will-change:opacity,transform; }
+    .qlist li small { display:block; margin-top:4px; font-size:clamp(16px,1.25vw,19px); font-weight:400; color:var(--fg-soft); }
+    .qtail { margin-top:clamp(26px,5vh,48px); max-width:36em; font-size:clamp(17px,1.4vw,21px); opacity:0; }
+    .qtail strong { color:var(--alert); }
+
+    /* STATS */
+    .stats { height:340vh; }
+    .stats .stage { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:center; padding:0 var(--gutter); }
+    .stats-copy { max-width:640px; }
+    .stats h2 { margin:18px 0 22px; font-size:clamp(30px,3.6vw,56px); }
+    .bignum { display:flex; align-items:baseline; gap:10px; font-weight:900; line-height:1; color:var(--alert); }
+    .bignum .pre { font-size:clamp(22px,2vw,32px); }
+    .bignum .num { font-family:'DM Mono',monospace; font-weight:500; font-size:clamp(96px,13vw,200px); letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
+    .bignum .unit { font-size:clamp(36px,4vw,64px); }
+    .stat-label { margin-top:14px; font-size:clamp(17px,1.4vw,21px); }
+    .substats { margin-top:28px; display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .substat { padding:18px 20px; border:1px solid var(--line); border-radius:18px; background:var(--card); }
+    .substat b { display:block; font-family:'DM Mono',monospace; font-weight:500; font-size:clamp(34px,3.4vw,52px); line-height:1.1; color:var(--accent); }
+    .substat > span { font-size:16px; }
+    .source { margin-top:20px; font-size:13px; line-height:1.7; color:var(--fg-soft); }
+    .source a { text-decoration:underline; text-underline-offset:3px; }
+
+    /* INCIDENTS */
+    .incidents { padding:clamp(120px,18vh,200px) 0 clamp(100px,14vh,160px); }
+    .incidents-head { text-align:center; padding:0 var(--gutter); max-width:980px; margin:0 auto; }
+    .incidents-head h2 { margin:18px 0 22px; }
+    .incidents-head p { font-size:clamp(17px,1.4vw,21px); }
+    .rows { margin-top:clamp(50px,8vh,90px); display:grid; gap:20px; }
+    .row { overflow:hidden; }
+    .track { display:flex; gap:20px; width:max-content; will-change:transform; }
+    .case { width:min(440px,80vw); flex:none; padding:28px 30px; border-radius:22px; border:1px solid var(--line); background:var(--card); backdrop-filter:blur(6px); transition:transform .6s cubic-bezier(.2,.8,.2,1), border-color .4s; }
+    .case:hover { transform:translateY(-8px) scale(1.02); border-color:var(--alert); }
+    .case .tag { display:flex; justify-content:space-between; gap:12px; color:var(--alert); }
+    .case h3 { margin:12px 0 8px; font-size:22px; font-weight:700; line-height:1.5; }
+    .case p { font-size:16px; line-height:1.75; color:var(--fg-soft); }
+    .incidents .source { text-align:center; padding:0 var(--gutter); margin-top:30px; }
+
+    /* COST */
+    .cost-pin { height:380vh; }
+    .cost .stage { display:flex; flex-direction:column; align-items:center; padding:clamp(96px,13vh,130px) var(--gutter) 30px; perspective:1400px; }
+    .cost-head { text-align:center; }
+    .cost-head h2 { margin:14px 0 8px; font-size:clamp(30px,3.8vw,58px); }
+    .cost-count { color:var(--fg-soft); }
+    .cost-count b { font-family:'DM Mono',monospace; color:var(--alert); font-size:28px; font-weight:500; }
+    .cost-grid { position:relative; margin-top:clamp(18px,3vh,34px); width:min(1120px,100%); display:grid; grid-template-columns:repeat(3,1fr); gap:14px; transform-style:preserve-3d; }
+    .cost-card { padding:20px 22px; border-radius:18px; background:var(--card); border:1px solid var(--line); opacity:0; transform-style:preserve-3d; will-change:transform,opacity; }
+    .cost-card .k { color:var(--alert); }
+    .cost-card h3 { margin-top:6px; font-size:clamp(18px,1.5vw,22px); font-weight:700; line-height:1.45; }
+    .cost-close { position:relative; z-index:3; max-width:860px; margin:0 auto; padding:0 var(--gutter) 24vh; text-align:center; }
+    .cost-close p { font-size:clamp(20px,2vw,30px); font-weight:700; line-height:1.7; }
+    .cost-close .source { font-weight:400; }
+
+    /* STATEMENT */
+    .statement { height:260vh; }
+    .statement .stage { display:flex; align-items:center; justify-content:center; padding:0 var(--gutter); }
+    .statement p { max-width:1100px; text-align:center; font-size:clamp(30px,4.4vw,70px); font-weight:900; line-height:1.45; }
+    .statement .ch-i { opacity:.13; }
+    .statement .hl { color:var(--accent); }
+
+    /* METHOD */
+    .method { height:420vh; }
+    .method .stage { display:flex; align-items:center; }
+    .method-track { display:flex; gap:clamp(20px,3vw,48px); padding:0 var(--gutter); will-change:transform; }
+    .panel { flex:none; width:min(72vw,880px); height:min(64vh,600px); border-radius:32px; position:relative; overflow:hidden; border:1px solid var(--line); background:var(--card); display:flex; flex-direction:column; justify-content:flex-end; padding:clamp(28px,4vw,56px); }
+    .panel-intro { background:transparent; border:0; justify-content:center; padding-left:0; width:min(64vw,760px); }
+    .panel-intro h2 { margin:18px 0 22px; }
+    .panel-intro p { font-size:clamp(17px,1.5vw,22px); max-width:30em; }
+    .panel .no { position:absolute; top:clamp(20px,3vw,40px); right:clamp(24px,3vw,44px); font-family:'DM Mono',monospace; font-size:clamp(90px,12vw,190px); line-height:1; color:transparent; -webkit-text-stroke:1.5px var(--accent); opacity:.55; }
+    .panel h3 { font-size:clamp(38px,4.6vw,72px); }
+    .panel h3 small { display:block; margin-bottom:6px; font-family:'DM Mono',monospace; font-weight:500; font-size:14px; letter-spacing:.14em; color:var(--accent); }
+    .panel p { margin-top:16px; max-width:30em; font-size:clamp(17px,1.45vw,21px); }
+    .panel-photo { padding:0; justify-content:flex-end; }
+    .panel-photo img { position:absolute; inset:-6% -12%; width:124%; height:112%; object-fit:cover; will-change:transform; }
+    .panel-photo .cap { position:relative; margin:clamp(20px,3vw,36px); padding:20px 24px; border-radius:18px; background:rgba(10,22,34,.78); color:#eef5f3; backdrop-filter:blur(8px); font-weight:700; font-size:clamp(18px,1.6vw,24px); line-height:1.55; max-width:24em; }
+    .method-dots { position:absolute; left:50%; bottom:clamp(20px,5vh,46px); transform:translateX(-50%); display:flex; gap:10px; }
+    .method-dots i { width:46px; height:3px; border-radius:3px; background:var(--line); overflow:hidden; position:relative; }
+    .method-dots i:after { content:''; position:absolute; inset:0; background:var(--accent); transform:scaleX(var(--p,0)); transform-origin:0 50%; }
+
+    /* OUTCOME */
+    .outcome { padding:clamp(120px,18vh,200px) var(--gutter); }
+    .outcome-grid { max-width:1240px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:clamp(40px,6vw,96px); align-items:center; }
+    .outcome-photo { position:relative; aspect-ratio:4/5; border-radius:32px; overflow:hidden; clip-path:circle(12% at 50% 50%); will-change:clip-path; }
+    .outcome-photo img { width:100%; height:120%; object-fit:cover; will-change:transform; }
+    .outcome h2 { margin:18px 0 24px; }
+    .proofs { list-style:none; padding:0; margin:34px 0 0; display:grid; gap:16px; }
+    .proofs li { display:grid; grid-template-columns:auto 1fr; gap:18px; padding:20px 0; border-top:1px solid var(--line); }
+    .proofs li b { font-family:'DM Mono',monospace; color:var(--accent); font-weight:500; font-size:15px; padding-top:5px; }
+    .proofs li strong { display:block; font-size:21px; }
+    .proofs li span { font-size:17px; color:var(--fg-soft); }
+
+    /* CTA */
+    .cta { min-height:100vh; min-height:100svh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:clamp(120px,16vh,180px) var(--gutter); }
+    .cta h2 { font-size:clamp(36px,5.6vw,88px); margin:20px 0 26px; }
+    .cta p { max-width:34em; font-size:clamp(17px,1.5vw,21px); }
+    .prep { margin:30px auto 38px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; max-width:820px; }
+    .prep span { padding:9px 18px; border-radius:999px; border:1px solid var(--line); background:var(--card); font-size:16px; }
+    .cta .note { margin-top:26px; font-size:15px; color:var(--fg-soft); }
+
+    footer { position:relative; z-index:2; padding:50px var(--gutter) 60px; border-top:1px solid var(--line); font-size:13px; line-height:1.8; color:var(--fg-soft); }
+    footer .wrap { max-width:1240px; margin:0 auto; display:flex; flex-wrap:wrap; gap:20px 40px; justify-content:space-between; }
+    footer a { text-decoration:underline; text-underline-offset:3px; }
+
+
+    /* TEAM */
+    .team { padding:clamp(120px,18vh,200px) var(--gutter) clamp(60px,10vh,120px); }
+    .team-head { max-width:980px; margin:0 auto clamp(60px,10vh,110px); text-align:center; }
+    .team-head h2 { margin:18px 0 22px; }
+    .team-head p { font-size:clamp(17px,1.5vw,22px); }
+    .person { max-width:1240px; margin:0 auto; display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:clamp(36px,6vw,96px); align-items:start; }
+    .person + .person { margin-top:clamp(90px,14vh,160px); }
+    .person-side { position:sticky; top:clamp(90px,12vh,120px); }
+    .role { display:inline-block; padding:7px 14px; border-radius:999px; border:1px solid var(--accent); color:var(--accent); }
+    .person-name { margin:18px 0 6px; font-size:clamp(40px,4.6vw,68px); font-weight:900; line-height:1.15; }
+    .person-name small { display:block; margin-top:8px; font-size:15px; font-weight:500; letter-spacing:.12em; color:var(--fg-soft); }
+    .person-title { font-size:17px; font-weight:700; color:var(--fg-soft); }
+    .htb { position:relative; margin-top:30px; padding:28px 28px 24px; border-radius:24px; overflow:hidden; background:#0b1825; color:#e9f1f0; }
+    .htb:before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(0deg, rgba(111,214,194,.06) 0 1px, transparent 1px 4px); pointer-events:none; }
+    .htb .scanbar { position:absolute; left:0; right:0; height:40%; top:-40%; background:linear-gradient(180deg, transparent, rgba(111,214,194,.16), transparent); animation:scanbar 3.6s cubic-bezier(.6,0,.3,1) infinite; pointer-events:none; }
+    @keyframes scanbar { to { top:110%; } }
+    .htb-top { display:flex; align-items:center; justify-content:space-between; gap:10px; color:#6fd6c2; }
+    .insane { padding:5px 12px; border-radius:6px; background:#e2603f; color:#fff; font-weight:500; letter-spacing:.18em; }
+    .htb-machine { margin-top:18px; min-height:1.3em; font-family:'DM Mono',monospace; font-size:clamp(30px,3vw,44px); font-weight:500; letter-spacing:.02em; }
+    .htb-machine .cursor { display:inline-block; width:.55em; height:1em; margin-left:4px; vertical-align:-.12em; background:#6fd6c2; animation:blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity:0; } }
+    .htb-meta { margin-top:6px; font-size:15px; color:rgba(233,241,240,.72); }
+    .htb-count { margin-top:22px; padding-top:18px; border-top:1px solid rgba(233,241,240,.16); display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+    .htb-count b { font-family:'DM Mono',monospace; font-weight:500; font-size:clamp(46px,5vw,72px); line-height:1; color:#6fd6c2; font-variant-numeric:tabular-nums; }
+    .htb-count span { font-size:16px; }
+    .htb-note { margin-top:10px; font-size:13px; color:rgba(233,241,240,.6); }
+    .bio p { font-size:clamp(17px,1.4vw,20px); line-height:2; }
+    .bio p + p { margin-top:1.2em; }
+    .bio strong { color:var(--accent); }
+    .theme { margin-top:clamp(40px,6vh,64px); padding-top:30px; border-top:1px solid var(--line); }
+    .bio .theme p { margin-top:14px; font-size:clamp(28px,3.4vw,50px); font-weight:900; line-height:1.4; }
+    .theme .ch-i { opacity:.14; }
+    .photo { position:relative; aspect-ratio:965/878; border-radius:28px; overflow:hidden; clip-path:inset(18% 18% 18% 18% round 28px); will-change:clip-path; }
+    .photo img { width:100%; height:118%; object-fit:cover; object-position:50% 30%; will-change:transform; }
+    .nums { margin:30px 0 26px; display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .nums div { padding:18px 16px; border-radius:18px; border:1px solid var(--line); background:var(--card); }
+    .nums b { display:block; font-family:'DM Mono',monospace; font-weight:500; font-size:clamp(28px,2.6vw,40px); line-height:1.1; color:var(--accent); font-variant-numeric:tabular-nums; }
+    .nums b small { display:block; margin-top:4px; font-family:'Noto Sans JP',sans-serif; font-size:14px; font-weight:700; }
+    .nums div > span { display:block; margin-top:6px; font-size:15px; color:var(--fg-soft); line-height:1.5; }
+    .creds { list-style:none; margin:26px 0 0; padding:0; }
+    .creds li { padding:13px 0; border-top:1px solid var(--line); font-size:17px; display:grid; grid-template-columns:7em 1fr; gap:14px; }
+    .creds li b { font-family:'DM Mono',monospace; font-weight:500; font-size:13px; letter-spacing:.12em; color:var(--accent); padding-top:4px; }
+    .stage-row { margin-top:clamp(50px,8vh,80px); overflow:hidden; }
+    .stage-row .track { gap:12px; }
+    .stage-row .track span { flex:none; padding:12px 22px; border-radius:999px; border:1px solid var(--line); background:var(--card); font-size:16px; white-space:nowrap; }
+    .team .source { margin-top:18px; text-align:center; }
+    @media (max-width:820px) {
+      body { font-size:17px; }
+      .chapter { display:none; }
+      .brand span { font-size:14px; }
+      .hero .stage { padding-top:110px; }
+      .hero-window { clip-path:inset(66% 7% 4% 7% round 22px); }
+      .hero-caption { bottom:80px; font-size:23px; }
+      .btn { padding:17px 26px; font-size:16px; }
+      .stats .stage { grid-template-columns:1fr; align-content:end; padding-bottom:48px; }
+      .bignum .num { font-size:96px; }
+      .substats { margin-top:18px; }
+      .substat { padding:14px 16px; }
+      .cost .stage { padding-top:96px; }
+      .cost-grid { display:block; height:min(52vh,420px); margin-top:22px; }
+      .cost-card { position:absolute; left:0; right:0; top:0; margin:0 auto; width:min(340px,92%); padding:22px 24px; box-shadow:0 20px 40px -24px rgba(0,0,0,.6); background:color-mix(in oklab, var(--bg) 88%, var(--fg)); }
+      .cost-card h3 { font-size:21px; }
+      .panel { width:84vw; height:min(68vh,560px); border-radius:24px; }
+      .panel-intro { width:84vw; }
+      .outcome-grid { grid-template-columns:1fr; }
+      .outcome-photo { aspect-ratio:4/4.4; }
+      .proofs li strong { font-size:19px; }
+      .person { grid-template-columns:1fr; }
+      .person-side { position:relative; top:0; }
+      .nums { gap:8px; }
+      .nums div { padding:14px 10px; }
+      .nums b { font-size:24px; }
+      .nums div > span { font-size:13px; }
+      .creds li { grid-template-columns:1fr; gap:2px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <canvas id="field" aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="情報漏洩予防設計 トップへ">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 8 52 16v14c0 13-8 22-20 27C20 52 12 43 12 30V16z" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="32" cy="31" r="6" fill="var(--alert)"/></svg>
+      <span>情報漏洩予防設計</span>
+    </a>
+    <div class="chapter mono" aria-hidden="true"><b id="chNo">01</b><span>/ 10</span><span class="ch-label" id="chLabel">INTRO</span></div>
+    <a class="header-cta" href="#contact">相談する</a>
+  </header>
+
+  <main id="top">
+    <!-- 01 HERO -->
+    <section class="pin hero" data-scene="cloud" data-tone="0" data-label="INTRO">
+      <div class="stage">
+        <span class="mono eyebrow hero-eyebrow">中小企業のための 情報漏洩予防設計</span>
+        <h1 class="hero-title" data-split="load">
+          <span class="line">「うちは保守会社に</span>
+          <span class="line">任せてるから、大丈夫。」</span>
+          <span class="line q">本当に、そうですか。</span>
+        </h1>
+        <p class="hero-sub soft">そう言い切れる根拠を、いま社内で説明できる人はいますか。外から何が見えていて、何から直すべきか。事故が起きる前に、自社で答えられる状態をつくります。</p>
+        <div class="hero-actions">
+          <a class="btn btn-main magnetic" href="#contact"><span class="fill"></span>うちの状況を相談する<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a>
+          <a class="btn btn-ghost magnetic" href="#method"><span class="fill"></span>何をしてくれるのか</a>
+        </div>
+        <div class="hero-window" id="heroWindow">
+          <img src="assets/hero.webp" alt="サーバールームのガラス越しに街を見つめる経営者" width="1254" height="1254">
+          <div class="shade"></div>
+        </div>
+        <p class="hero-caption" data-split="manual">
+          <span class="line mono">THE OUTSIDE VIEW</span>
+          <span class="line">ホームページも、メールも、</span>
+          <span class="line">クラウドも。</span>
+          <span class="line">外から見れば、</span>
+          <span class="line">全部が会社の入口です。</span>
+        </p>
+        <div class="scroll-cue mono"><i></i>SCROLL</div>
+      </div>
+    </section>
+
+    <!-- 02 QUESTIONS -->
+    <section class="pin questions" data-scene="outline" data-tone="1" data-label="QUESTIONS">
+      <div class="stage">
+        <span class="mono eyebrow">3 QUESTIONS</span>
+        <h2 data-split="manual"><span class="line">「何かあったら、</span><span class="line">誰に電話すればいい？」</span></h2>
+        <ol class="qlist">
+          <li>保守会社から、最近なにか提案はありましたか。<small>契約があることと、いまの入口まで見てもらえていることは同じではありません。</small></li>
+          <li>技術と経営、両方を相談できる人はいますか。<small>事故のあとに相談先を探し始めると、判断も対応も一日ずつ遅れます。</small></li>
+          <li>自社のどこに顧客情報があるか、すぐに言えますか。<small>守る対象が言えなければ、守れているかどうかも言えません。</small></li>
+        </ol>
+        <p class="qtail">ひとつでも詰まったなら、担当者が悪いのではありません。<br><strong>会社に、確かめて判断する仕組みがまだない</strong>だけです。</p>
+      </div>
+    </section>
+
+    <!-- 03 STATS -->
+    <section class="pin stats" data-scene="grid" data-tone="1" data-label="REALITY">
+      <div class="stage">
+        <div class="stats-copy">
+          <span class="mono eyebrow">THE NUMBERS</span>
+          <h2 data-split="manual"><span class="line">「うちみたいな小さい会社、</span><span class="line">狙われないでしょ。」</span></h2>
+          <div class="bignum" aria-label="約46パーセント"><span class="pre">約</span><span class="num" id="statMain">0</span><span class="unit">%</span></div>
+          <p class="stat-label">回答した約2,300社のうち、2024年に何らかのセキュリティ被害を受けた企業の割合。</p>
+          <div class="substats">
+            <div class="substat"><b><span id="statA">0</span>%</b><span>標的型メールが届いた</span></div>
+            <div class="substat"><b><span id="statB">0</span>%</b><span>ウイルスを発見・感染した</span></div>
+          </div>
+          <p class="source">出典: 総務省「通信利用動向調査」の結果として、<a href="https://www.sompo-japan.co.jp/hinsurance/cyberrisk/" target="_blank" rel="noopener">損害保険ジャパン「サイバー保険」ページ</a>に掲載された数値。</p>
+        </div>
+        <div aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- 04 INCIDENTS -->
+    <section class="incidents" data-scene="flow" data-tone="1" data-label="INCIDENTS">
+      <div class="incidents-head">
+        <span class="mono eyebrow">IT HAPPENS</span>
+        <h2 data-split="scroll"><span class="line">「よその会社の話だと</span><span class="line">思っていた。」</span></h2>
+        <p class="soft" data-rise>業種も規模も、ばらばらです。入口になったのは、一通のメール、会員サイト、辞めた社員のアカウント、そして送信ボタンひとつ。</p>
+      </div>
+      <div class="rows">
+        <div class="row"><div class="track" data-dir="-1">
+          <article class="case"><div class="tag mono"><span>製造・卸売業</span><span>約100名</span></div><h3>社員のパソコンが感染し、取引先の情報まで流出</h3><p>マルウェアに感染したパソコンから電子メールが大量に送信され、自社と取引先の重要な情報が漏えい。</p></article>
+          <article class="case"><div class="tag mono"><span>製造業</span><span>約1,500名</span></div><h3>会員サイトから、カード情報約3,400件</h3><p>会員サイトへの不正アクセスで顧客のクレジットカード情報が流出し、不正利用の被害も発生。</p></article>
+          <article class="case"><div class="tag mono"><span>運輸業</span><span>約1,300名</span></div><h3>退職した元社員が、不正にアクセス</h3><p>業務用パソコンのウイルス対策ソフトだけが、意図的に削除されていた。</p></article>
+        </div></div>
+        <div class="row"><div class="track" data-dir="1">
+          <article class="case"><div class="tag mono"><span>建設業</span><span>約2,000名</span></div><h3>全サーバーの約95%が暗号化</h3><p>機密情報を含むサーバーのほとんどが使えない状態に。</p></article>
+          <article class="case"><div class="tag mono"><span>製造業</span><span>約140,000名</span></div><h3>応募者と従業員の情報、約8,000件以上</h3><p>不正アクセスにより、採用応募者や従業員の人事情報が漏えい。</p></article>
+          <article class="case"><div class="tag mono"><span>製薬業</span><span>約350名</span></div><h3>約200名の顧客に、宛先が見える状態で誤送信</h3><p>攻撃ではなく、社員の操作ひとつで起きた漏えい。</p></article>
+        </div></div>
+      </div>
+      <p class="source">事例は<a href="https://www.sompo-japan.co.jp/hinsurance/cyberrisk/" target="_blank" rel="noopener">損害保険ジャパン「サイバー保険」ページ</a>の掲載内容を要約。</p>
+    </section>
+
+    <!-- 05 COST -->
+    <section class="cost" data-scene="stack" data-tone="1" data-label="AFTERMATH">
+      <div class="pin cost-pin"><div class="stage">
+        <div class="cost-head">
+          <span class="mono eyebrow">THE DAY AFTER</span>
+          <h2 data-split="manual"><span class="line">「事故が起きたら、</span><span class="line">何にお金がかかるの？」</span></h2>
+          <p class="cost-count mono">発生する対応 <b id="costNo">0</b> / 9</p>
+        </div>
+        <div class="cost-grid" id="costGrid">
+          <div class="cost-card"><span class="k mono">対応費用</span><h3>ネットワークの遮断と外部委託</h3></div>
+          <div class="cost-card"><span class="k mono">対応費用</span><h3>攻撃の有無、被害範囲、原因の調査</h3></div>
+          <div class="cost-card"><span class="k mono">対応費用</span><h3>問い合わせ窓口の設置</h3></div>
+          <div class="cost-card"><span class="k mono">対応費用</span><h3>謝罪と、信頼回復のための会見</h3></div>
+          <div class="cost-card"><span class="k mono">対応費用</span><h3>被害者へのお見舞い</h3></div>
+          <div class="cost-card"><span class="k mono">対応費用</span><h3>壊れたデータの修復</h3></div>
+          <div class="cost-card"><span class="k mono">対応費用</span><h3>再発防止策の策定と専門家への相談</h3></div>
+          <div class="cost-card"><span class="k mono">賠償責任</span><h3>取引先や顧客への損害賠償、争訟費用</h3></div>
+          <div class="cost-card"><span class="k mono">利益の損失</span><h3>システムが止まっている間の売上</h3></div>
+        </div>
+      </div></div>
+      <div class="cost-close">
+        <p data-rise>保険は、こうした事後の費用に備えるもの。<br>私たちが担うのは、その手前です。<br>入口を減らし、起きたときに説明できる記録を残すこと。</p>
+        <p class="source" data-rise>費用項目は<a href="https://www.sompo-japan.co.jp/hinsurance/cyberrisk/" target="_blank" rel="noopener">損害保険ジャパン「サイバー保険」ページ</a>に記載の補償対象例をもとに整理。</p>
+      </div>
+    </section>
+
+    <!-- 06 STATEMENT -->
+    <section class="pin statement" data-scene="line" data-tone="0" data-label="THE GAP">
+      <div class="stage">
+        <p data-split="fill"><span class="line">「保守契約があること」と、</span><span class="line hl">「いま守られていると、</span><span class="line hl">自社で説明できること」は、</span><span class="line">同じではありません。</span></p>
+      </div>
+    </section>
+
+    <!-- 07 METHOD -->
+    <section class="pin method" id="method" data-scene="lattice" data-tone="0" data-label="METHOD">
+      <div class="stage">
+        <div class="method-track" id="methodTrack">
+          <div class="panel panel-intro">
+            <span class="mono eyebrow">HOW IT WORKS</span>
+            <h2 data-split="manual"><span class="line">「で、具体的に</span><span class="line">何をしてくれるの？」</span></h2>
+            <p class="soft">脆弱性の一覧を渡して終わり、にはしません。見つけて、順番を決めて、直ったことまで確かめる。この三つを一つの運用として引き受けます。</p>
+          </div>
+          <div class="panel"><span class="no">01</span><h3><small>FIND</small>見つける</h3><p>合意した範囲で、外から見えている入口と設定を確認します。ホームページ、メール、クラウド、使われなくなったアカウントまで。</p></div>
+          <div class="panel"><span class="no">02</span><h3><small>DECIDE</small>決める</h3><p>見つかったことを、事業への影響、優先順位、担当、期限に置き換えます。保守会社や制作会社へ何を頼めばいいかまで、言葉にします。</p></div>
+          <div class="panel"><span class="no">03</span><h3><small>VERIFY</small>確かめる</h3><p>直したつもりで終わらせません。外からもう一度確認し、閉じたことを確かめます。結果は会社の記録として残ります。</p></div>
+          <div class="panel panel-photo"><img src="assets/diagnosis.webp" alt="専門家が経営者に確認結果を説明している様子" width="1254" height="1254" loading="lazy"><p class="cap">技術の話を、社長が判断できる言葉にして持ち帰っていただきます。</p></div>
+        </div>
+        <div class="method-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+      </div>
+    </section>
+
+
+    <!-- 08 TEAM -->
+    <section class="team" id="team" data-scene="radar" data-tone="0" data-label="WHO">
+      <div class="team-head">
+        <span class="mono eyebrow">WHO WILL LOOK</span>
+        <h2 data-split="scroll"><span class="line">「で、誰が</span><span class="line">見てくれるの？」</span></h2>
+        <p class="soft" data-rise>攻撃者の目で弱点を見つける人と、AIを安全に使う仕組みを社内に根づかせる人。二人で担当します。</p>
+      </div>
+
+      <article class="person">
+        <div class="person-side">
+          <span class="role mono">DIAGNOSIS / WHITE HAT</span>
+          <h3 class="person-name">竹内 大登<small>たけうち ひろと</small></h3>
+          <p class="person-title">AIコンサルタント／セキュリティ診断・改善支援</p>
+          <div class="htb" id="htbCard">
+            <i class="scanbar" aria-hidden="true"></i>
+            <div class="htb-top mono"><span>HACK THE BOX</span><span class="insane">INSANE</span></div>
+            <p class="htb-machine"><span id="htbType"></span><i class="cursor" aria-hidden="true"></i></p>
+            <p class="htb-meta">最高難易度区分の課題を、数時間で攻略</p>
+            <div class="htb-count"><span>世界で約</span><b id="htbCount">0</b><span>人の攻略成功者の一人</span></div>
+            <p class="htb-note mono">AS OF 2026.10.28</p>
+          </div>
+        </div>
+        <div class="bio">
+          <p data-rise>Web・業務システムの開発からインフラ構築、システム移行まで手がけてきた、エンジニア出身のコンサルタント。RAGチャットボットの開発など、生成AIを業務に組み込むプロジェクトも経験。</p>
+          <p data-rise>大手企業や政府機関もセキュリティ人材の育成に活用する「Hack The Box」で、最高難易度区分「Insane」の課題「BlockSynergy」を数時間で攻略。<strong>世界で約1,500人の攻略成功者の一人</strong>となる（2026年10月28日時点）。実際のシステムを模した環境で、弱点を発見し、侵入の可能性を検証する演習実績を持つ。</p>
+          <p data-rise>開発・インフラの経験と、攻撃者の視点から弱点を見抜く技術を活かし、企業のセキュリティ診断と改善を支援。技術的な問題を経営者や現場の担当者が理解できる言葉で伝え、対応の優先順位づけから関係者との連携、改善後の確認まで伴走する。</p>
+          <p data-rise>生成AIの活用では、業務効率化と情報漏えい対策を一体で設計。社内データの取り扱い、利用ルールの策定、ツールの選定・設定、社員教育まで支援する。</p>
+          <p data-rise>掲げるテーマは「AIに使われる側から、使う側へ」。便利さと安全性の両立を目指し、企業が自ら判断し、運用を続けられる体制づくりに取り組んでいる。</p>
+          <div class="theme">
+            <span class="mono eyebrow">THEME</span>
+            <p data-split="fill"><span class="line">AIに使われる側から、</span><span class="line">使う側へ。</span></p>
+          </div>
+        </div>
+      </article>
+
+      <article class="person">
+        <div class="person-side">
+          <div class="photo" id="uedaPhoto"><img src="assets/ueda.webp" alt="ノートパソコンに向かう上田良江" width="965" height="878" loading="lazy"></div>
+        </div>
+        <div class="bio">
+          <span class="role mono">REPRESENTATIVE DIRECTOR</span>
+          <h3 class="person-name">上田 良江<small>YOSHIE UEDA</small></h3>
+          <p class="person-title">代表理事／生成AI活用講師</p>
+          <div class="nums">
+            <div><b><span data-count="5000">0</span><small>時間+</small></b><span>生成AI活用の累計</span></div>
+            <div><b><span data-count="100">0</span><small>回+</small></b><span>AI講座の開催</span></div>
+            <div><b><span data-count="1000">0</span><small>名+</small></b><span>延べ受講者数</span></div>
+          </div>
+          <p data-rise>北海道を拠点に、企業・自治体・各種団体へ生成AI活用研修を行う。2022年11月から生成AI分野に継続的に取り組み、2023年からは東大・松尾研究所チームメンバーに師事。</p>
+          <p data-rise>研修では、AIツールの操作だけでなく、ルールやセキュリティを踏まえた安全な使い方と、実際の業務でどう活かすかを重視。元作業療法士という経歴を活かし、初心者にもわかりやすい実演型の講座を強みとする。</p>
+          <ul class="creds">
+            <li data-rise><b>CERT</b><span>Google AI Essentials 取得</span></li>
+            <li data-rise><b>CERT</b><span>GUGA 生成AIパスポート 取得</span></li>
+            <li data-rise><b>COURSE</b><span>東京大学AI経営寄付講座 AI Business Insights 2026 修了</span></li>
+            <li data-rise><b>MEDIA</b><span>STV「どさんこワイドWeekend」出演、日経新聞 電子版 掲載ほか、累計23メディア</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <div class="stage-row" aria-label="上田良江の主な登壇・研修実績">
+        <div class="track" data-dir="-1">
+          <span>北海道庁　職業訓練関係者向け生成AI研修</span><span>バックオフィスDXPO札幌2026</span><span>北広島市　事業所向けDX・AI活用セミナー</span><span>公益社団法人 北海道産業資源循環協会</span><span>北海道土地改良事業団体連合会</span><span>江別まちなか仕事プラザ</span><span>由仁町</span><span>栗山町</span><span>北海道昭和会</span><span>北商連青年部協議会</span>
+        </div>
+      </div>
+      <p class="source">上田良江の経歴・実績は<a href="https://happystate.co.jp/ueda-yoshie" target="_blank" rel="noopener">公式プロフィール</a>の掲載内容より。</p>
+    </section>
+    <!-- 09 OUTCOME -->
+    <section class="outcome" data-scene="ring" data-tone="0" data-label="OUTCOME">
+      <div class="outcome-grid">
+        <div class="outcome-photo" id="outcomePhoto"><img src="assets/ownership.webp" alt="社内のメンバーが資料を見ながら判断している様子" width="1254" height="1254" loading="lazy"></div>
+        <div>
+          <span class="mono eyebrow">WHAT STAYS</span>
+          <h2 data-split="scroll"><span class="line">「保守会社を替えろ、</span><span class="line">って話？」</span><span class="line" style="color:var(--accent)">いいえ、違います。</span></h2>
+          <p class="soft" data-rise>いまの保守会社や制作会社とは、そのまま連携します。変わるのは、会社の中に判断材料が残ること。担当が替わっても、外注先が替わっても、説明できる状態が続きます。AIツールを使い始めた会社では、入力してよい情報の線引きも一緒に決めます。</p>
+          <ul class="proofs">
+            <li data-rise><b>01</b><div><strong>外から見えている状態がわかる</strong><span>許可された範囲で、実際に見えている入口を確認します。</span></div></li>
+            <li data-rise><b>02</b><div><strong>何から直すか、社内で決められる</strong><span>技術の話を、優先順位と担当と期限に置き換えます。</span></div></li>
+            <li data-rise><b>03</b><div><strong>直ったことを、感覚で判断しない</strong><span>是正後に再確認し、結果を記録として残します。</span></div></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 CTA -->
+    <section class="cta" id="contact" data-scene="ring" data-tone="0" data-label="CONTACT">
+      <span class="mono eyebrow">START HERE</span>
+      <h2 data-split="scroll"><span class="line">「まず、うちの状況を</span><span class="line">聞いてほしい。」</span></h2>
+      <p class="soft" data-rise>そこからで大丈夫です。いまの保守体制と、使っているサービスを整理するところから始めます。分かる範囲で、次のものをご用意ください。</p>
+      <div class="prep" data-rise><span>ホームページのURL</span><span>使っているクラウド・メール</span><span>導入済みのAIツール</span><span>保守契約の範囲</span></div>
+      <a class="btn btn-main magnetic" data-rise href="mailto:contact@example.jp?subject=%E6%83%85%E5%A0%B1%E6%BC%8F%E6%B4%A9%E4%BA%88%E9%98%B2%E8%A8%AD%E8%A8%88%E3%81%AE%E7%9B%B8%E8%AB%87"><span class="fill"></span>相談を申し込む<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a>
+      <p class="note">診断は、対象範囲と緊急時の連絡手順に合意してから実施します。</p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>情報漏洩予防設計</span>
+      <span>統計・事例・費用項目の出典: <a href="https://www.sompo-japan.co.jp/hinsurance/cyberrisk/" target="_blank" rel="noopener">損害保険ジャパン「情報漏えい事故対応 サイバー保険」</a>（統計の原典は総務省「通信利用動向調査」）。当サービスは同社とは関係ありません。</span>
+    </div>
+  </footer>
+
+  <script src="assets/vendor/gsap.min.js"></script>
+  <script src="assets/vendor/ScrollTrigger.min.js"></script>
+  <script src="assets/vendor/lenis.min.js"></script>
+  <script>
+  (() => {
+    const root = document.documentElement;
+    const isNarrow = () => innerWidth <= 820;
+    const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+    const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+    const forceMotion = /[?&]motion=on/.test(location.search);
+    const reduced = !forceMotion && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ---------- split text into masked characters ----------
+    document.querySelectorAll('[data-split]').forEach(el => {
+      el.querySelectorAll('.line').forEach(line => {
+        const text = line.textContent;
+        line.textContent = '';
+        for (const c of text) {
+          const o = document.createElement('span'); o.className = 'ch';
+          const i = document.createElement('span'); i.className = 'ch-i';
+          i.textContent = c === ' ' ? ' ' : c;
+          o.appendChild(i); line.appendChild(o);
+        }
+      });
+    });
+
+    const hasGsap = window.gsap && window.ScrollTrigger;
+    if (!hasGsap) { document.querySelectorAll('.qlist li,.qtail,.cost-card').forEach(e => e.style.opacity = 1); }
+
+    // ---------- smooth scroll ----------
+    let lenis = null, velocity = 0;
+    if (hasGsap) {
+      gsap.registerPlugin(ScrollTrigger);
+      if (window.Lenis && !reduced) {
+        lenis = new Lenis({ lerp: 0.085, smoothWheel: true, wheelMultiplier: 0.9 });
+        lenis.on('scroll', e => { velocity = e.velocity; ScrollTrigger.update(); });
+        gsap.ticker.add(t => lenis.raf(t * 1000));
+        gsap.ticker.lagSmoothing(0);
+        document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+          const id = a.getAttribute('href'); if (id.length < 2) return;
+          const t = document.querySelector(id); if (!t) return;
+          e.preventDefault(); lenis.scrollTo(t, { duration: 1.8 });
+        }));
+      }
+    }
+    let lastY = scrollY;
+    addEventListener('scroll', () => { if (!lenis) { velocity = scrollY - lastY; lastY = scrollY; } }, { passive: true });
+
+    // ---------- particle field (the one protagonist across all chapters) ----------
+    const cv = document.getElementById('field');
+    const ctx = cv.getContext('2d');
+    const N = 400;
+    let W = 0, H = 0, DPR = 1;
+    const P = [];
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < N; i++) P.push({ x: rnd() * innerWidth, y: rnd() * innerHeight, vx: 0, vy: 0, r: rnd(), q: rnd(), a: rnd() * Math.PI * 2, c: 0 });
+    const order = [...Array(N).keys()].sort((a, b) => P[a].q - P[b].q); // spread order for the grid fill
+    const rank = new Array(N); order.forEach((p, i) => rank[p] = i);
+    let statVal = 0, stackVal = 0;
+
+    const S = {};
+    function buildShapes() {
+      const n = isNarrow();
+      // outline: the company frame, with strays outside (unseen entrances)
+      const ins = n ? 14 : Math.min(W, H) * 0.07, rx = ins, ry = n ? 70 : ins + 30, rw = W - ins * 2, rh = H - ry - ins;
+      const per = 2 * (rw + rh), frameN = 340;
+      S.outline = P.map((p, i) => {
+        if (i < frameN) {
+          let d = (i / frameN) * per;
+          if (d < rw) return [rx + d, ry, 0]; d -= rw;
+          if (d < rh) return [rx + rw, ry + d, 0]; d -= rh;
+          if (d < rw) return [rx + rw - d, ry + rh, 0]; d -= rw;
+          return [rx, ry + rh - d, 0];
+        }
+        const side = i % 4, k = p.q;
+        if (side === 0) return [k * W, ry * 0.45, 1];
+        if (side === 1) return [W - ins * 0.45, ry + k * rh, 1];
+        if (side === 2) return [k * W, H - ins * 0.4, 1];
+        return [ins * 0.45, ry + k * rh, 1];
+      });
+      // grid: 20 x 20 companies
+      const gs = n ? Math.min(W * 0.82, H * 0.34) : Math.min(W * 0.36, H * 0.66);
+      const gx = n ? (W - gs) / 2 : W * 0.56 + (W * 0.4 - gs) / 2, gy = n ? H * 0.11 : (H - gs) / 2 + 20;
+      S.grid = P.map((p, i) => [gx + (i % 20 + 0.5) * gs / 20, gy + (Math.floor(i / 20) + 0.5) * gs / 20, 0]);
+      // stack: columns of cost piling up from the floor
+      const cols = 9, cw = W * (n ? 0.9 : 0.8) / cols, cx0 = W * (n ? 0.05 : 0.1), floor = H - 18, unit = n ? 4.2 : 6;
+      const heights = [6, 9, 5, 7, 4, 6, 8, 12, 15]; const tot = heights.reduce((a, b) => a + b);
+      const colOf = []; heights.forEach((h, c) => { const cnt = Math.round(h / tot * N); for (let k = 0; k < cnt; k++) colOf.push([c, k]); });
+      while (colOf.length < N) colOf.push([8, colOf.length]);
+      S.stack = P.map((p, i) => { const [c, k] = colOf[i]; return [cx0 + c * cw + (k % 6 + 0.5) * cw / 7, floor - Math.floor(k / 6) * unit, c]; });
+      // line: one calm horizon
+      S.line = P.map((p, i) => [W * 0.08 + (i / N) * W * 0.84, H * (n ? 0.86 : 0.84), 0]);
+      // lattice: ordered, checked
+      const lc = 50, lr = 8, lw = W * 0.9, lh = n ? H * 0.12 : H * 0.16;
+      S.lattice = P.map((p, i) => [W * 0.05 + (i % lc + 0.5) * lw / lc, H * 0.9 - lh + Math.floor(i / lc) * lh / lr, 2]);
+    }
+    const dyn = {
+      cloud: (p, i, t) => { const n = isNarrow(); return [((p.r * 1.3 - 0.15) * W) + Math.sin(t * 0.25 + p.a) * 40, (n ? 0.04 + p.q * 0.6 : p.q) * H + Math.cos(t * 0.21 + p.a * 1.7) * 30, 0]; },
+      flow: (p, i, t) => { const band = i % 7; const sp = 26 + band * 9 + p.r * 20; return [((p.q * (W + 200) + t * sp) % (W + 200)) - 100, H * (0.12 + band * 0.12) + Math.sin(t * 0.8 + p.q * 12) * 14, 0]; },
+      radar: (p, i, t) => { const n = isNarrow(); const cx = n ? W * 0.5 : W * 0.86, cy = n ? H * 0.2 : H * 0.5; const k = i % 5; const R = (k + 1) * Math.min(W, H) * (n ? 0.05 : 0.085); const th = (i / N) * Math.PI * 14 + k; const sweep = (t * 1.2) % (Math.PI * 2); const dth = ((th - sweep) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2); return [cx + Math.cos(th) * R, cy + Math.sin(th) * R, dth > Math.PI * 1.7 ? 1 : 2]; },
+      ring: (p, i, t) => { const n = isNarrow(); const R = Math.min(W, H) * (n ? 0.46 : 0.42) + (i % 3) * 10; const th = (i / N) * Math.PI * 2 + t * 0.06 * (i % 2 ? 1 : -1); return [W / 2 + Math.cos(th) * R * (n ? 0.95 : 1.25), H / 2 + Math.sin(th) * R, 2]; }
+    };
+    function target(name, p, i, t) {
+      if (dyn[name]) return dyn[name](p, i, t);
+      const v = S[name][i];
+      if (name === 'grid') return [v[0], v[1], rank[i] < statVal * N / 100 ? 1 : 0];
+      if (name === 'stack') return [v[0], v[1], v[2] < stackVal ? 1 : 0];
+      if (name === 'outline') return [v[0] + (v[2] ? Math.sin(t * 0.9 + p.a) * 16 : 0), v[1] + (v[2] ? Math.cos(t * 0.7 + p.a) * 16 : 0), v[2]];
+      return v;
+    }
+    function resize() {
+      DPR = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
+      cv.width = W * DPR; cv.height = H * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      buildShapes();
+    }
+    resize(); addEventListener('resize', resize);
+
+    const mouse = { x: -9999, y: -9999, on: false };
+    addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.on = true; }, { passive: true });
+    addEventListener('pointerleave', () => { mouse.on = false; });
+    document.addEventListener('pointerout', e => { if (!e.relatedTarget) mouse.on = false; });
+
+    const scenes = [...document.querySelectorAll('[data-scene]')];
+    const chNo = document.getElementById('chNo'), chLabel = document.getElementById('chLabel');
+    let curLabel = '';
+    const mix = (a, b, t) => a + (b - a) * t;
+    const col = (d, k) => { // k: 0 base, 1 alert, 2 accent
+      if (k === 1) return [226, 96, 63];
+      if (k === 2) return [mix(15, 111, d), mix(127, 214, d), mix(116, 194, d)];
+      return [mix(15, 200, d), mix(29, 222, d), mix(43, 219, d)];
+    };
+
+    function frame(now) {
+      const t = now / 1000, mid = H * 0.4;
+      // which chapter, and how far into the hand-off to the next one
+      let idx = 0;
+      for (let i = 0; i < scenes.length; i++) if (scenes[i].getBoundingClientRect().top <= mid) idx = i;
+      const nxt = scenes[Math.min(idx + 1, scenes.length - 1)];
+      const b = nxt === scenes[idx] ? 0 : smooth(H * 0.95, H * 0.4, nxt.getBoundingClientRect().top);
+      const A = scenes[idx].dataset.scene, B = nxt.dataset.scene;
+      const d = mix(+scenes[idx].dataset.tone, +nxt.dataset.tone, b);
+      root.style.setProperty('--dp', (d * 100).toFixed(2) + '%');
+      const lab = b > 0.5 ? nxt.dataset.label : scenes[idx].dataset.label;
+      if (lab !== curLabel) {
+        curLabel = lab; const no = scenes.findIndex(s => s.dataset.label === lab) + 1;
+        chNo.textContent = String(no).padStart(2, '0'); chLabel.textContent = lab;
+        if (hasGsap) gsap.fromTo([chNo, chLabel], { yPercent: 60, opacity: 0 }, { yPercent: 0, opacity: 1, duration: .6, ease: 'expo.out' });
+      }
+
+      ctx.clearRect(0, 0, W, H);
+      const near = [];
+      const sizeBase = isNarrow() ? 1.7 : 2.1;
+      for (let i = 0; i < N; i++) {
+        const p = P[i];
+        const ta = target(A, p, i, t), tb = b > 0 ? target(B, p, i, t) : ta;
+        // stagger the hand-off per particle so the shape flows instead of jumping
+        const bb = b > 0 ? smooth(p.q * 0.35, p.q * 0.35 + 0.65, b) : 0;
+        const tx = mix(ta[0], tb[0], bb), ty = mix(ta[1], tb[1], bb);
+        const kc = bb < 0.5 ? ta[2] : tb[2];
+        p.vx += (tx - p.x) * 0.035; p.vy += (ty - p.y) * 0.035;
+        if (mouse.on) {
+          const dx = p.x - mouse.x, dy = p.y - mouse.y, dd = dx * dx + dy * dy;
+          if (dd < 160 * 160) { const f = (1 - Math.sqrt(dd) / 160) * 2.2; const inv = 1 / (Math.sqrt(dd) + .01); p.vx += dx * inv * f; p.vy += dy * inv * f; near.push(p); }
+        }
+        p.vx *= 0.8; p.vy *= 0.8; p.x += p.vx; p.y += p.vy;
+        p.c += ((kc === 1 ? 1 : kc === 2 ? 2 : 0) - p.c) * 0.08;
+        const k = Math.round(p.c);
+        const [cr, cg, cb] = col(d, k);
+        const alpha = k === 1 ? 0.95 : (A === 'cloud' && b < .5 ? 0.42 : A === 'radar' ? 0.3 : (A === 'ring' || A === 'lattice') ? 0.45 : 0.62);
+        ctx.fillStyle = `rgba(${cr|0},${cg|0},${cb|0},${alpha})`;
+        const s = sizeBase * (k === 1 ? 1.45 : 1) * (0.8 + p.r * 0.5);
+        ctx.fillRect(p.x - s / 2, p.y - s / 2, s, s);
+      }
+      if (mouse.on && near.length) {
+        const [cr, cg, cb] = col(d, 2);
+        ctx.lineWidth = 1;
+        for (const p of near) {
+          const dist = Math.hypot(p.x - mouse.x, p.y - mouse.y);
+          ctx.strokeStyle = `rgba(${cr|0},${cg|0},${cb|0},${(1 - dist / 200) * 0.5})`;
+          ctx.beginPath(); ctx.moveTo(mouse.x, mouse.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+        }
+        ctx.strokeStyle = `rgba(${cr|0},${cg|0},${cb|0},.8)`;
+        ctx.beginPath(); ctx.arc(mouse.x, mouse.y, 18 + Math.sin(t * 3) * 3, 0, Math.PI * 2); ctx.stroke();
+      }
+
+      // marquee rows: constant drift plus scroll velocity, slightly skewed by speed
+      const v = clamp(velocity, -60, 60);
+      tracks.forEach(tr => {
+        tr.x += tr.dir * (0.55 + Math.abs(v) * 0.22);
+        const half = tr.el.scrollWidth / 2;
+        if (tr.x < -half) tr.x += half; if (tr.x > 0) tr.x -= half;
+        tr.el.style.transform = `translate3d(${tr.x}px,0,0) skewX(${(-v * 0.12).toFixed(2)}deg)`;
+      });
+      if (!lenis) velocity *= 0.9;
+
+      // top progress + header backdrop
+      const max = document.documentElement.scrollHeight - H;
+      const y = -document.querySelector('main').getBoundingClientRect().top;
+      prog.style.transform = `scaleX(${clamp(y / max, 0, 1)})`;
+      root.style.setProperty('--hdr', y > heroEnd ? 1 : 0);
+      requestAnimationFrame(frame);
+    }
+    const prog = document.getElementById('progress');
+    let heroEnd = 0;
+    const measure = () => { heroEnd = document.querySelector('.hero').offsetHeight - innerHeight * 0.2; };
+    measure(); addEventListener('resize', measure);
+
+    // duplicate case cards so the loop has no seam
+    const tracks = [...document.querySelectorAll('.track')].map(el => {
+      el.innerHTML += el.innerHTML; el.innerHTML += el.innerHTML;
+      return { el, dir: +el.dataset.dir, x: +el.dataset.dir > 0 ? -el.scrollWidth / 2 : 0 };
+    });
+    requestAnimationFrame(frame);
+
+    // ---------- magnetic buttons ----------
+    document.querySelectorAll('.magnetic').forEach(btn => {
+      btn.addEventListener('pointermove', e => {
+        const r = btn.getBoundingClientRect();
+        const x = e.clientX - r.left, y = e.clientY - r.top;
+        btn.style.setProperty('--mx', x + 'px'); btn.style.setProperty('--my', y + 'px');
+        if (hasGsap) gsap.to(btn, { x: (x - r.width / 2) * 0.25, y: (y - r.height / 2) * 0.35, scale: 1.05, duration: .6, ease: 'power3.out' });
+      });
+      btn.addEventListener('pointerleave', () => { if (hasGsap) gsap.to(btn, { x: 0, y: 0, scale: 1, duration: 1, ease: 'elastic.out(1,.4)' }); });
+    });
+    // tilt for case cards
+    document.addEventListener('pointermove', e => {
+      const c = e.target.closest && e.target.closest('.case'); if (!c || !hasGsap) return;
+      const r = c.getBoundingClientRect();
+      gsap.to(c, { rotateY: ((e.clientX - r.left) / r.width - .5) * 10, rotateX: -((e.clientY - r.top) / r.height - .5) * 10, transformPerspective: 800, duration: .5 });
+    });
+    document.addEventListener('pointerout', e => { const c = e.target.closest && e.target.closest('.case'); if (c && hasGsap && !c.contains(e.relatedTarget)) gsap.to(c, { rotateX: 0, rotateY: 0, duration: .8 }); });
+
+    if (!hasGsap) return;
+
+    // ---------- scroll choreography ----------
+    const chars = sel => gsap.utils.toArray(sel);
+    const pinTL = (sec, scrub = 1) => gsap.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: sec, start: 'top top', end: 'bottom bottom', scrub } });
+
+    // hero: entrance
+    gsap.from('.hero-title .ch-i', { yPercent: 115, opacity: 0, duration: 1.3, ease: 'expo.out', stagger: .028, delay: .15 });
+    gsap.from('.hero-eyebrow, .hero-sub, .hero-actions, .scroll-cue', { y: 30, opacity: 0, duration: 1.2, ease: 'expo.out', stagger: .12, delay: .7 });
+    gsap.from('#heroWindow', { yPercent: 18, opacity: 0, duration: 1.6, ease: 'expo.out', delay: .9 });
+    gsap.set('.hero-caption .ch-i', { yPercent: 115, opacity: 0 });
+
+    // hero: the window opens into the outside view
+    const startClip = () => {
+      const top = clamp((document.querySelector('.hero-actions').getBoundingClientRect().bottom + 28) / innerHeight * 100, 55, 84);
+      const side = isNarrow() ? 6 : 31;
+      return `inset(${top.toFixed(1)}% ${side}% 4% ${side}% round ${isNarrow() ? 22 : 28}px)`;
+    };
+    gsap.set('#heroWindow', { clipPath: startClip() });
+    const heroTL = pinTL('.hero', 1.2);
+    heroTL
+      .to('.hero-title .ch', { yPercent: -120, opacity: 0, stagger: .004, duration: .22, ease: 'power2.in' }, 0)
+      .to('.hero-eyebrow, .hero-sub, .hero-actions, .scroll-cue', { y: -60, opacity: 0, duration: .18 }, 0)
+      .fromTo('#heroWindow', { clipPath: startClip }, { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: .5, ease: 'power2.inOut', immediateRender: false }, .06)
+      .fromTo('#heroWindow img', { scale: 1.4 }, { scale: 1.02, duration: .62, ease: 'power1.out' }, .06)
+      .to('#heroWindow .shade', { opacity: 1, duration: .2 }, .45)
+      .to('.hero-caption .ch-i', { yPercent: 0, opacity: 1, stagger: .004, duration: .16, ease: 'power3.out' }, .52)
+      .to('.hero-caption', { y: -40, duration: .2 }, .8);
+
+    // questions
+    ['.questions', '.stats', '.cost'].forEach(sec => gsap.from(sec + ' h2 .ch-i', { yPercent: 115, opacity: 0, stagger: .02, ease: 'power3.out',
+      scrollTrigger: { trigger: sec, start: 'top 75%', end: 'top 5%', scrub: 1 } }));
+    const qTL = pinTL('.questions');
+    const qs = gsap.utils.toArray('.qlist li');
+    qs.forEach((li, i) => {
+      qTL.fromTo(li, { opacity: .14, y: 26 }, { opacity: 1, y: 0, duration: .1, ease: 'power2.out' }, .06 + i * .2);
+      if (i < qs.length - 1) qTL.to(li, { opacity: .42, duration: .08 }, .06 + (i + 1) * .2);
+    });
+    qTL.to('.qtail', { opacity: 1, y: 0, duration: .1 }, .72).from('.qtail', { y: 30, duration: .1 }, .72);
+    qTL.to({}, { duration: .12 }, .86);
+
+    // stats: the counter drives how many of the 400 dots turn red
+    const counter = { m: 0, a: 0, b: 0 };
+    const elM = document.getElementById('statMain'), elA = document.getElementById('statA'), elB = document.getElementById('statB');
+    const sTL = pinTL('.stats');
+    sTL
+      .from('.bignum, .stat-label', { opacity: 0, y: 40, duration: .1, stagger: .03 }, .14)
+      .to(counter, { m: 46, duration: .36, ease: 'power1.inOut', onUpdate: () => { statVal = counter.m; elM.textContent = Math.round(counter.m); } }, .2)
+      .from('.substat', { opacity: 0, y: 40, stagger: .04, duration: .1 }, .56)
+      .to(counter, { a: 29, b: 23, duration: .2, onUpdate: () => { elA.textContent = Math.round(counter.a); elB.textContent = Math.round(counter.b); } }, .6)
+      .from('.stats .source', { opacity: 0, duration: .08 }, .78)
+      .to({}, { duration: .1 }, .9);
+
+    // cost: nine cards arrive one by one out of depth
+    const costNo = document.getElementById('costNo');
+    const cards = gsap.utils.toArray('.cost-card');
+    const cTL = pinTL('.cost-pin');
+    cards.forEach((card, i) => {
+      const narrow = isNarrow();
+      const rot = narrow ? (i % 2 ? 1 : -1) * (2 + (i % 3)) : 0;
+      cTL.fromTo(card, { opacity: 0, z: -900, y: narrow ? 260 : 180, rotateX: 55, rotateZ: rot * 3 },
+        { opacity: 1, z: 0, y: narrow ? i * 7 : 0, rotateX: 0, rotateZ: rot, duration: .07, ease: 'power3.out',
+          onStart: () => { costNo.textContent = i + 1; stackVal = i + 1; },
+          onReverseComplete: () => { costNo.textContent = i; stackVal = i; } }, .1 + i * .075);
+    });
+    cTL.to({}, { duration: .15 }, .85);
+
+    // statement: characters fill in as you read
+    gsap.to('.statement .ch-i', { opacity: 1, ease: 'none', stagger: .05,
+      scrollTrigger: { trigger: '.statement', start: 'top top', end: 'bottom bottom', scrub: 1 } });
+
+    // method: horizontal travel
+    const track = document.getElementById('methodTrack');
+    const dots = gsap.utils.toArray('.method-dots i');
+    const hTween = gsap.to(track, { x: () => -(track.scrollWidth - innerWidth), ease: 'none',
+      scrollTrigger: { trigger: '.method', start: 'top top', end: 'bottom bottom', scrub: 1, invalidateOnRefresh: true,
+        onUpdate: self => dots.forEach((d, i) => d.style.setProperty('--p', clamp(self.progress * 3 - i, 0, 1))) } });
+    gsap.fromTo('.panel-photo img', { xPercent: 8 }, { xPercent: -8, ease: 'none',
+      scrollTrigger: { trigger: '.method', start: 'top top', end: 'bottom bottom', scrub: 1 } });
+    gsap.utils.toArray('.method .panel:not(.panel-intro)').forEach(pn => {
+      gsap.from(pn.querySelectorAll('.no, h3, p'), { y: 80, opacity: 0, stagger: .1, ease: 'power2.out',
+        scrollTrigger: { trigger: pn, containerAnimation: hTween, start: 'left 95%', end: 'left 45%', scrub: 1 } });
+      gsap.fromTo(pn, { rotateY: -14, transformPerspective: 1400 }, { rotateY: 0, ease: 'none',
+        scrollTrigger: { trigger: pn, containerAnimation: hTween, start: 'left right', end: 'left 40%', scrub: 1 } });
+    });
+    gsap.from('.method .panel-intro h2 .ch-i', { yPercent: 115, opacity: 0, stagger: .02,
+      scrollTrigger: { trigger: '.method', start: 'top 70%', end: 'top 10%', scrub: 1 } });
+
+    // outcome photo opens like an aperture
+    gsap.to('#outcomePhoto', { clipPath: 'circle(75% at 50% 50%)', ease: 'none',
+      scrollTrigger: { trigger: '.outcome', start: 'top 85%', end: 'center 55%', scrub: 1 } });
+    gsap.fromTo('#outcomePhoto img', { yPercent: -10 }, { yPercent: 6, ease: 'none',
+      scrollTrigger: { trigger: '.outcome', start: 'top bottom', end: 'bottom top', scrub: 1 } });
+
+    // team: the machine name types itself and the counters run with the scroll
+    const typeEl = document.getElementById('htbType'), word = 'BlockSynergy', htbN = document.getElementById('htbCount');
+    const htb = { k: 0, n: 0 };
+    gsap.to(htb, { k: word.length, n: 1500, ease: 'none',
+      scrollTrigger: { trigger: '#htbCard', start: 'top 92%', end: 'top 35%', scrub: 1 },
+      onUpdate: () => { typeEl.textContent = word.slice(0, Math.round(htb.k)); htbN.textContent = Math.round(htb.n).toLocaleString('en-US'); } });
+    gsap.from('#htbCard', { rotateX: 35, y: 80, opacity: 0, transformPerspective: 1200, ease: 'power3.out',
+      scrollTrigger: { trigger: '#htbCard', start: 'top 100%', end: 'top 60%', scrub: 1 } });
+    gsap.to('.theme .ch-i', { opacity: 1, stagger: .05, ease: 'none',
+      scrollTrigger: { trigger: '.theme', start: 'top 85%', end: 'top 35%', scrub: 1 } });
+    gsap.to('#uedaPhoto', { clipPath: 'inset(0% 0% 0% 0% round 28px)', ease: 'none',
+      scrollTrigger: { trigger: '#uedaPhoto', start: 'top 95%', end: 'top 35%', scrub: 1 } });
+    gsap.fromTo('#uedaPhoto img', { yPercent: -12 }, { yPercent: 2, ease: 'none',
+      scrollTrigger: { trigger: '#uedaPhoto', start: 'top bottom', end: 'bottom top', scrub: 1 } });
+    document.querySelectorAll('[data-count]').forEach(el => {
+      const o = { v: 0 }, to = +el.dataset.count;
+      gsap.to(o, { v: to, ease: 'power1.out', onUpdate: () => { el.textContent = Math.round(o.v).toLocaleString('en-US'); },
+        scrollTrigger: { trigger: el, start: 'top 92%', end: 'top 50%', scrub: 1 } });
+    });
+
+    // generic: headings rise character by character, paragraphs follow
+    document.querySelectorAll('[data-split="scroll"]').forEach(h => {
+      gsap.from(h.querySelectorAll('.ch-i'), { yPercent: 115, opacity: 0, stagger: .02, ease: 'power3.out',
+        scrollTrigger: { trigger: h, start: 'top 88%', end: 'top 40%', scrub: 1 } });
+    });
+    document.querySelectorAll('[data-rise]').forEach(el => {
+      gsap.from(el, { y: 70, opacity: 0, ease: 'power2.out',
+        scrollTrigger: { trigger: el, start: 'top 95%', end: 'top 62%', scrub: 1 } });
+    });
+
+    addEventListener('load', () => ScrollTrigger.refresh());
+  })();
+  </script>
+</body>
+</html>
